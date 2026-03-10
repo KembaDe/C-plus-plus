@@ -1,0 +1,26 @@
+class Solution {
+public:
+    int jump(vector<int>& nums) {
+        int jumps = 0;
+        int current_end = 0;
+        int farthest = 0;
+        
+        // We don't need to jump if we are already at the last index
+        // So we loop until n - 1
+        for (int i = 0; i < nums.size() - 1; i++) {
+            // Update the furthest point we could potentially reach
+            farthest = max(farthest, i + nums[i]);
+            
+            // If we've reached the end of the range for the current jump
+            if (i == current_end) {
+                jumps++;
+                current_end = farthest;
+                
+                // If we can already reach the last index, break early
+                if (current_end >= nums.size() - 1) break;
+            }
+        }
+        
+        return jumps;
+    }
+};
