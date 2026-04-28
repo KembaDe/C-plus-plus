@@ -1,0 +1,75 @@
+#include <vector>
+#include <string>
+#include <unordered_set>
+#include <unordered_map>
+#include <queue>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+    unordered_map<string, vector<string>> adj;
+    vector<vector<string>> ans;
+
+public:
+    vector<vector<string>> findLadders(string beginWord, string endWord, vector<string>& wordList) {
+        unordered_set<string> dict(wordList.begin(), wordList.end());
+        if (dict.find(endWord) == dict.end()) return {};
+
+        // BFS to find shortest paths and build adjacency map
+        unordered_map<string, int> visited; 
+        queue<string> q;
+        q.push(beginWord);
+        visited[beginWord] = 0;
+
+        bool found = false;
+        while (!q.empty() && !found) {
+            int size = q.size();
+            unordered_set<string> localVisited;
+            for (int i = 0; i < size; i++) {
+                string curr = q.front();
+                q.pop();
+
+                string next = curr;
+                for (int j = 0; j < next.length(); j++) {
+                    char original = next[j];
+                    for (char c = 'a'; c <= 'z'; c++) {
+                        next[j] = c;
+                        if (dict.count(next)) {
+                            // If first time seeing this word or seeing it at the same distance
+                            if (visited.find(next) == visited.end() || visited[next] == visited[curr] + 1) {
+                                if (visited.find(next) == visited.end()) {
+                                    visited[next] = visited[curr] + 1;
+                                    q.push(next);
+                                }
+                                adj[curr].push_back(next); // Add directed edge
+                                if (next == endWord) found = true;
+                            }
+                        }
+                    }
+                    next[j] = original;
+                }
+            }
+        }
+
+        if (found) {
+            vector<string> path = {beginWord};
+            backtrack(beginWord, endWord, path);
+        }
+        return ans;
+    }
+
+private:
+    void backtrack(string& curr, string& target, vector<string>& path) {
+        if (curr == target) {
+            ans.push_back(path);
+            return;
+        }
+
+        for (string& neighbor : adj[curr]) {
+            path.push_back(neighbor);
+            backtrack(neighbor, target, path);
+            path.pop_back(); // Backtrack
+        }
+    }
+};
