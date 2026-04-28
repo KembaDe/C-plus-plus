@@ -1,0 +1,33 @@
+#include <vector>
+#include <algorithm>
+#include <climits>
+
+using namespace std;
+
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        if (prices.empty()) return 0;
+
+        // Initialize states
+        // buy variables are negative because they represent spending money
+        int buy1 = INT_MIN, sell1 = 0;
+        int buy2 = INT_MIN, sell2 = 0;
+
+        for (int price : prices) {
+            // 1st Transaction:
+            // Maximize money after buying (minimize cost)
+            buy1 = max(buy1, -price);
+            // Maximize profit after selling
+            sell1 = max(sell1, buy1 + price);
+
+            // 2nd Transaction:
+            // Maximize money after buying second stock using profit from first
+            buy2 = max(buy2, sell1 - price);
+            // Maximize final profit
+            sell2 = max(sell2, buy2 + price);
+        }
+
+        return sell2;
+    }
+};
