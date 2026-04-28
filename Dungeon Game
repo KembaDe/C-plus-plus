@@ -1,0 +1,39 @@
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    int calculateMinimumHP(vector<vector<int>>& dungeon) {
+        int m = dungeon.size();
+        int n = dungeon[0].size();
+
+        // dp[i][j] stores the min health needed before entering room (i, j)
+        vector<vector<int>> dp(m, vector<int>(n));
+
+        for (int i = m - 1; i >= 0; i--) {
+            for (int j = n - 1; j >= 0; j--) {
+                // Base Case: The Princess's room
+                if (i == m - 1 && j == n - 1) {
+                    dp[i][j] = max(1, 1 - dungeon[i][j]);
+                } 
+                // Bottom row: Can only move right
+                else if (i == m - 1) {
+                    dp[i][j] = max(1, dp[i][j + 1] - dungeon[i][j]);
+                } 
+                // Rightmost column: Can only move down
+                else if (j == n - 1) {
+                    dp[i][j] = max(1, dp[i + 1][j] - dungeon[i][j]);
+                } 
+                // General case: Choose the path that requires less health
+                else {
+                    int min_next_health = min(dp[i + 1][j], dp[i][j + 1]);
+                    dp[i][j] = max(1, min_next_health - dungeon[i][j]);
+                }
+            }
+        }
+
+        return dp[0][0];
+    }
+};
