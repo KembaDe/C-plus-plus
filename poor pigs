@@ -1,0 +1,23 @@
+#include <cmath>
+
+class Solution {
+public:
+    int poorPigs(int buckets, int minutesToDie, int minutesToTest) {
+        // Calculate the number of available testing rounds
+        int rounds = minutesToTest / minutesToDie;
+        
+        // Each pig can have (rounds + 1) possible states
+        int base = rounds + 1;
+        
+        // Find the minimum number of pigs needed
+        int pigs = 0;
+        int max_buckets = 1;
+        
+        while (max_buckets < buckets) {
+            max_buckets *= base;
+            pigs++;
+        }
+        
+        return pigs;
+    }
+};
