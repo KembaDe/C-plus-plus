@@ -1,0 +1,88 @@
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <list>
+
+class AllOne {
+private:
+    struct Node {
+        int count;
+        std::unordered_set<std::string> keys;
+    };
+
+    // Doubly linked list to maintain buckets ordered by frequency
+    std::list<Node> buckets;
+    
+    // Hash map to locate the bucket node containing a specific key
+    std::unordered_map<std::string, std::list<Node>::iterator> key_to_bucket;
+
+public:
+    AllOne() {}
+
+    void inc(std::string key) {
+        if (key_to_bucket.find(key) == key_to_bucket.end()) {
+            // Case 1: Key does not exist. Insert it into a count=1 bucket.
+            if (buckets.empty() || buckets.front().count > 1) {
+                buckets.push_front({1, {key}});
+            } else {
+                buckets.front().keys.insert(key);
+            }
+            key_to_bucket[key] = buckets.begin();
+        } else {
+            // Case 2: Key exists. Move it to the bucket with count + 1.
+            auto curr = key_to_bucket[key];
+            auto next_bucket = std::next(curr);
+            int next_count = curr->count + 1;
+
+            if (next_bucket == buckets.end() || next_bucket->count > next_count) {
+                next_bucket = buckets.insert(next_bucket, {next_count, {}});
+            }
+            
+            next_bucket->keys.insert(key);
+            key_to_bucket[key] = next_bucket;
+
+            // Clean up current bucket
+            curr->keys.erase(key);
+            if (curr->keys.empty()) {
+                buckets.erase(curr);
+            }
+        }
+    }
+
+    void dec(std::string key) {
+        auto curr = key_to_bucket[key];
+        int prev_count = curr->count - 1;
+
+        if (prev_count == 0) {
+            // Case 1: Count becomes 0. Erase from map entirely.
+            key_to_bucket.erase(key);
+        } else {
+            // Case 2: Count > 0. Move to the bucket with count - 1.
+            auto prev_bucket = curr;
+            if (curr == buckets.begin() || std::prev(curr)->count < prev_count) {
+                prev_bucket = buckets.insert(curr, {prev_count, {}});
+            } else {
+                prev_bucket = std::prev(curr);
+            }
+            
+            prev_bucket->keys.insert(key);
+            key_to_bucket[key] = prev_bucket;
+        }
+
+        // Clean up current bucket
+        curr->keys.erase(key);
+        if (curr->keys.empty()) {
+            buckets.erase(curr);
+        }
+    }
+
+    std::string getMaxKey() {
+        if (buckets.empty()) return "";
+        return *(buckets.back().keys.begin());
+    }
+
+    std::string getMinKey() {
+        if (buckets.empty()) return "";
+        return *(buckets.front().keys.begin());
+    }
+};
