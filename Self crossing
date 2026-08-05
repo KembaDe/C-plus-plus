@@ -1,0 +1,36 @@
+#include <iostream>
+#include <vector>
+
+class Solution {
+public:
+    bool isSelfCrossing(std::vector<int>& distance) {
+        int n = distance.size();
+        if (n < 4) return false; // Impossible to cross with fewer than 4 moves
+
+        for (int i = 3; i < n; ++i) {
+            // Case 1: Line i crosses Line i-3
+            // The path spirals inward too early.
+            if (distance[i] >= distance[i - 2] && distance[i - 1] <= distance[i - 3]) {
+                return true;
+            }
+
+            // Case 2: Line i meets or crosses Line i-4
+            // The path wraps around and touches or crosses the edge parallel to it.
+            if (i >= 4 && distance[i - 1] == distance[i - 3] && 
+                (distance[i] + distance[i - 4] >= distance[i - 2])) {
+                return true;
+            }
+
+            // Case 3: Line i crosses Line i-5
+            // The path shifts from expanding outward to contracting inward, overlapping lines.
+            if (i >= 5 && distance[i - 1] <= distance[i - 3] && 
+                distance[i - 1] >= distance[i - 3] - distance[i - 5] &&
+                distance[i - 2] >= distance[i - 4] && 
+                distance[i] >= distance[i - 2] - distance[i - 4]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+};
