@@ -1,0 +1,68 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+
+class Solution {
+private:
+    // Helper function to create a palindrome given a left half prefix
+    long long createPalindrome(long long prefix, bool isEvenLength) {
+        std::string s = std::to_string(prefix);
+        std::string rev = s;
+        std::reverse(rev.begin(), rev.end());
+        
+        if (isEvenLength) {
+            return std::stoll(s + rev);
+        } else {
+            return std::stoll(s + rev.substr(1));
+        }
+    }
+
+public:
+    std::string nearestPalindromic(std::string n_str) {
+        long long n = std::stoll(n_str);
+        int len = n_str.length();
+        
+        // Edge case for single-digit numbers: the closest smaller integer is n - 1
+        if (n <= 10) return std::to_string(n - 1);
+
+        std::vector<long long> candidates;
+
+        // Candidate 1 & 2: Lower and upper edge boundaries (e.g., 99...9 and 100...01)
+        candidates.push_back(std::pow(10, len - 1) - 1);
+        candidates.push_back(std::pow(10, len) + 1);
+
+        // Extract the left half prefix of the number
+        int mid = (len + 1) / 2;
+        long long prefix = std::stoll(n_str.substr(0, mid));
+
+        // Candidate 3, 4, & 5: Mirroring the prefix, prefix + 1, and prefix - 1
+        bool isEvenLength = (len % 2 == 0);
+        candidates.push_back(createPalindrome(prefix, isEvenLength));
+        candidates.push_back(createPalindrome(prefix + 1, isEvenLength));
+        candidates.push_back(createPalindrome(prefix - 1, isEvenLength));
+
+        long long closestPalindrome = -1;
+        long long minDifference = INT64_MAX;
+
+        // Evaluate all candidates to find the one with the smallest absolute difference
+        for (long long candidate : candidates) {
+            // The problem states the closest palindrome cannot be the input number itself
+            if (candidate == n) continue;
+
+            long long diff = std::abs(candidate - n);
+            
+            // Pick the candidate with the smaller difference. 
+            // In case of a tie, pick the structurally smaller palindrome.
+            if (diff < minDifference) {
+                minDifference = diff;
+                closestPalindrome = candidate;
+            } else if (diff == minDifference) {
+                closestPalindrome = std::min(closestPalindrome, candidate);
+            }
+        }
+
+        return std::to_string(closestPalindrome);
+    }
+};
