@@ -1,0 +1,42 @@
+#include <iostream>
+#include <vector>
+#include <numeric>
+#include <cmath>
+#include <algorithm>
+
+class Solution {
+public:
+    int findMinMoves(std::vector<int>& machines) {
+        int n = machines.size();
+        
+        // 1. Calculate the total number of dresses
+        long long totalDresses = 0;
+        for (int dresses : machines) {
+            totalDresses += dresses;
+        }
+
+        // 2. Check if an even distribution is mathematically possible
+        if (totalDresses % n != 0) {
+            return -1;
+        }
+
+        int target = totalDresses / n;
+        int maxMoves = 0;
+        int currentBalance = 0;
+
+        // 3. Scan machines to identify the maximum workflow bottleneck
+        for (int dresses : machines) {
+            // How many dresses this specific machine must export/import relative to target
+            int offset = dresses - target;
+            
+            // Track the rolling balance of dresses flowing from the left partition to the right partition
+            currentBalance += offset;
+
+            // The absolute balance represents the net transfers crossing the current boundary line.
+            // The 'offset' represents the unilateral outbound transfers a single heavy machine must perform.
+            maxMoves = std::max({maxMoves, std::abs(currentBalance), offset});
+        }
+
+        return maxMoves;
+    }
+};
