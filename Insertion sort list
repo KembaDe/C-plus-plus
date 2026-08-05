@@ -1,0 +1,37 @@
+class Solution {
+public:
+    ListNode* insertionSortList(ListNode* head) {
+        // Base case: an empty list or a single node is already sorted
+        if (!head || !head->next) {
+            return head;
+        }
+
+        // Dummy node acts as the start of the new sorted list
+        ListNode* dummy = new ListNode(0);
+        ListNode* curr = head;
+
+        while (curr != nullptr) {
+            // Store the next node to process before we detach curr
+            ListNode* nextNode = curr->next;
+
+            // Start searching from the beginning of the sorted list
+            ListNode* prev = dummy;
+            
+            // Move prev until we find the spot where curr->val fits
+            while (prev->next != nullptr && prev->next->val < curr->val) {
+                prev = prev->next;
+            }
+
+            // Insert curr between prev and prev->next
+            curr->next = prev->next;
+            prev->next = curr;
+
+            // Move to the next node in the original list
+            curr = nextNode;
+        }
+
+        ListNode* sortedHead = dummy->next;
+        delete dummy; // Clean up the dummy node memory
+        return sortedHead;
+    }
+};
