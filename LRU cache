@@ -1,0 +1,92 @@
+#include <unordered_map>
+
+class LRUCache {
+private:
+    // Structure for the doubly linked list node
+    struct Node {
+        int key;
+        int val;
+        Node* prev;
+        Node* next;
+        Node(int k, int v) : key(k), val(v), prev(nullptr), next(nullptr) {}
+    };
+
+    int cap;
+    // Dummy head and tail nodes to avoid edge-case pointer handling
+    Node* head;
+    Node* tail;
+    // Hash map to find nodes in O(1) time
+    std::unordered_map<int, Node*> cache;
+
+    // Helper function to add a node right after the dummy head
+    void addNode(Node* node) {
+        node->next = head->next;
+        node->prev = head;
+        head->next->prev = node;
+        head->next = node;
+    }
+
+    // Helper function to remove an existing node from the list
+    void removeNode(Node* node) {
+        Node* prevNode = node->prev;
+        Node* nextNode = node->next;
+        prevNode->next = nextNode;
+        nextNode->prev = prevNode;
+    }
+
+    // Helper function to move a node to the front (Most Recently Used)
+    void moveToHead(Node* node) {
+        removeNode(node);
+        addNode(node);
+    }
+
+public:
+    LRUCache(int capacity) {
+        cap = capacity;
+        head = new Node(-1, -1);
+        tail = new Node(-1, -1);
+        head->next = tail;
+        tail->prev = head;
+    }
+    
+    int get(int key) {
+        if (cache.find(key) == cache.end()) {
+            return -1;
+        }
+        Node* node = cache[key];
+        moveToHead(node); // Mark as most recently used
+        return node->val;
+    }
+    
+    void put(int key, int value) {
+        if (cache.find(key) != cache.end()) {
+            // Key exists: update value and move to head
+            Node* node = cache[key];
+            node->val = value;
+            moveToHead(node);
+        } else {
+            // Key does not exist: create a new node
+            Node* newNode = new Node(key, value);
+            cache[key] = newNode;
+            addNode(newNode);
+            
+            // If capacity exceeded, evict the LRU node (just before tail)
+            if (cache.size() > cap) {
+                Node* lruNode = tail->prev;
+                removeNode(lruNode);
+                cache.erase(lruNode->key);
+                delete lruNode; // Free memory
+            }
+        }
+    }
+    
+    // Optional: Destructor to free remaining heap memory safely
+    ~LRUCache() {
+        Node* curr = head;
+        while (curr != nullptr) {
+            Node* next = curr->next;
+            delete curr;
+            curr = next;
+        }
+    }
+};
