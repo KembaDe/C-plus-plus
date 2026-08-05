@@ -1,0 +1,49 @@
+#include <iostream>
+#include <string>
+#include <cmath>
+
+class Solution {
+public:
+    std::string smallestGoodBase(std::string n_str) {
+        long long n = std::stoll(n_str);
+        
+        // Try all possible number of bits 'm' from maximum (~60) down to 3
+        for (int m = 60; m >= 3; --m) {
+            // k^m-1 < n => k < n^(1/(m-1))
+            // This provides an excellent upper bound for our binary search
+            long long left = 2;
+            long long right = std::pow(n, 1.0 / (m - 1)) + 1;
+            
+            while (left <= right) {
+                long long mid = left + (right - left) / 2;
+                long long sum = 0;
+                long long current_power = 1;
+                bool overflow = false;
+                
+                // Calculate the value of 1 + mid + mid^2 + ... + mid^(m-1)
+                for (int i = 0; i < m; ++i) {
+                    sum += current_power;
+                    if (i < m - 1) {
+                        // Check for potential long long overflow before multiplying
+                        if (current_power > n / mid) {
+                            overflow = true;
+                            break;
+                        }
+                        current_power *= mid;
+                    }
+                }
+                
+                if (overflow || sum > n) {
+                    right = mid - 1; // Base is too large
+                } else if (sum < n) {
+                    left = mid + 1;  // Base is too small
+                } else {
+                    return std::to_string(mid); // Found the exact base
+                }
+            }
+        }
+        
+        // Worst case fallback: n represented in base (n - 1) is always "11"
+        return std::to_string(n - 1);
+    }
+};
