@@ -1,0 +1,95 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <queue>
+#include <unordered_set>
+#include <algorithm>
+
+class Solution {
+private:
+    // Helper function to handle automatic chain-reaction eliminations
+    std::string collapse(std::string board) {
+        bool changed = true;
+        while (changed) {
+            changed = false;
+            int n = board.length();
+            for (int i = 0; i < n; ) {
+                int j = i;
+                while (j < n && board[j] == board[i]) {
+                    j++;
+                }
+                // If 3 or more consecutive identical balls are found, eliminate them
+                if (j - i >= 3) {
+                    board.erase(i, j - i);
+                    changed = true;
+                    break; 
+                }
+                i = j;
+            }
+        }
+        return board;
+    }
+
+public:
+    int findMinStep(std::string board, std::string hand) {
+        // Sort hand to ensure consistent state representation
+        std::sort(hand.begin(), hand.end());
+        
+        // Queue stores pairs of: {current_board, current_hand}
+        std::queue<std::pair<std::string, std::string>> q;
+        std::unordered_set<std::string> visited;
+
+        q.push({board, hand});
+        visited.insert(board + "#" + hand);
+
+        int steps = 0;
+
+        while (!q.empty()) {
+            int size = q.size();
+            for (int i = 0; i < size; ++i) {
+                auto [curr_board, curr_hand] = q.front();
+                q.pop();
+
+                // If board is cleared, we found the minimum steps via BFS depth
+                if (curr_board.empty()) return steps;
+
+                // Try inserting every unique ball choice from hand into every position on the board
+                for (size_t j = 0; j < curr_hand.length(); ++j) {
+                    // Skip duplicate consecutive balls in hand to avoid redundant branches
+                    if (j > 0 && curr_hand[j] == curr_hand[j - 1]) continue;
+
+                    char ball = curr_hand[j];
+                    // Form the remaining hand after choosing this ball
+                    std::string next_hand = curr_hand.substr(0, j) + curr_hand.substr(j + 1);
+
+                    for (size_t k = 0; k <= curr_board.length(); ++k) {
+                        // Pruning optimization: Only insert if it matches adjacent board color,
+                        // or if we are inserting a different color to intentionally split a pair.
+                        if (k < curr_board.length() && curr_board[k] == ball) {
+                            // Good placement choice
+                        } else if (k > 0 && curr_board[k - 1] == ball) {
+                            // Good placement choice
+                        } else if (k > 0 && k < curr_board.length() && curr_board[k - 1] == curr_board[k]) {
+                            // Intentionally splitting a pair (crucial for advanced test cases)
+                        } else {
+                            continue; 
+                        }
+
+                        // Create the new board configuration and trigger chain reactions
+                        std::string next_board = curr_board.substr(0, k) + ball + curr_board.substr(k);
+                        next_board = collapse(next_board);
+
+                        std::string state_key = next_board + "#" + next_hand;
+                        if (visited.find(state_key) == visited.end()) {
+                            visited.insert(state_key);
+                            q.push({next_board, next_hand});
+                        }
+                    }
+                }
+            }
+            steps++;
+        }
+
+        return -1; // Impossible to clear the board
+    }
+};
