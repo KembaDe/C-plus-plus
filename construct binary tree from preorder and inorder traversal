@@ -1,0 +1,47 @@
+#include <vector>
+#include <unordered_map>
+
+using namespace std;
+
+class Solution {
+private:
+    // Hash map to find the index of a value in the inorder traversal in O(1) time
+    unordered_map<int, int> inorder_map;
+    int preorder_index = 0;
+
+    TreeNode* buildTreeHelper(const vector<int>& preorder, int inorder_start, int inorder_end) {
+        // Base case: if there are no elements to construct the subtree
+        if (inorder_start > inorder_end) {
+            return nullptr;
+        }
+
+        // The first element in preorder traversal for the current range is the root node
+        int root_val = preorder[preorder_index++];
+        TreeNode* root = new TreeNode(root_val);
+
+        // Find the index of this root in the inorder traversal
+        int inorder_root_index = inorder_map[root_val];
+
+        // Recursively build the left and right subtrees
+        // Elements to the left of inorder_root_index form the left subtree
+        root->left = buildTreeHelper(preorder, inorder_start, inorder_root_index - 1);
+        
+        // Elements to the right of inorder_root_index form the right subtree
+        root->right = buildTreeHelper(preorder, inorder_root_index + 1, inorder_end);
+
+        return root;
+    }
+
+public:
+    TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {
+        inorder_map.clear();
+        preorder_index = 0;
+        
+        // Populate the map for fast lookups
+        for (int i = 0; i < inorder.size(); ++i) {
+            inorder_map[inorder[i]] = i;
+        }
+        
+        return buildTreeHelper(preorder, 0, inorder.size() - 1);
+    }
+};
