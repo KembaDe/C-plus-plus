@@ -1,0 +1,90 @@
+#include <iostream>
+#include <vector>
+#include <set>
+#include <unordered_map>
+
+class Solution {
+public:
+    std::vector<double> medianSlidingWindow(std::vector<int>& nums, int k) {
+        std::vector<double> medians;
+        std::unordered_map<int, int> delayed_remover; // Stores elements to be lazily removed
+        
+        std::multiset<long long> small; // Stores lower half
+        std::multiset<long long> large; // Stores upper half
+        
+        // Helper to balance the sizes of the two multisets
+        auto balance = [&]() {
+            // Keep small multiset size equal to or one element larger than large multiset
+            if (small.size() > large.size() + 1) {
+                large.insert(*small.rbegin());
+                small.erase(std::prev(small.end()));
+            } else if (small.size() < large.size()) {
+                small.insert(*large.begin());
+                large.erase(large.begin());
+            }
+        };
+
+        // Helper to add an element
+        auto add_num = [&](long long num) {
+            if (small.empty() || num <= *small.rbegin()) {
+                small.insert(num);
+            } else {
+                large.insert(num);
+            }
+            balance();
+        };
+
+        // Helper to perform deletion and balance check
+        auto remove_num = [&](long long num) {
+            // If the element to remove is in the lower half
+            if (!small.empty() && num <= *small.rbegin()) {
+                auto it = small.find(num);
+                if (it != small.end()) {
+                    small.erase(it);
+                }
+            } else {
+                auto it = large.find(num);
+                if (it != large.end()) {
+                    large.erase(it);
+                }
+            }
+            
+            // Re-balance immediately after the physical removal to keep invariants safe
+            balance();
+            
+            // Clean up invalid/stale elements sitting at the boundary tops if they were lazy-tracked
+            while (!small.empty() && delayed_remover[*small.rbegin()] > 0) {
+                delayed_remover[*small.rbegin()]--;
+                small.erase(std::prev(small.end()));
+            }
+            while (!large.empty() && delayed_remover[*large.begin()] > 0) {
+                delayed_remover[*large.begin()]--;
+                large.erase(large.begin());
+            }
+        };
+
+        // Helper to retrieve the active median
+        auto get_median = [&]() -> double {
+            if (k % 2 == 1) {
+                return *small.rbegin();
+            } else {
+                return (*small.rbegin() + *large.begin()) / 2.0;
+            }
+        };
+
+        // Initialize the first window frame
+        for (int i = 0; i < k; ++i) {
+            add_num(nums[i]);
+        }
+        medians.push_back(get_median());
+
+        // Slide the window across the rest of the array
+        for (int i = k; i < nums.size(); ++i) {
+            add_num(nums[i]);             // Insert incoming element
+            remove_num(nums[i - k]);       // Evict outgoing element
+            medians.push_back(get_median());
+        }
+
+        return medians;
+    }
+};
