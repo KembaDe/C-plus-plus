@@ -1,0 +1,57 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+class Solution {
+private:
+    int rows;
+    int cols;
+    // Direction vectors for moving: up, down, left, right
+    const std::vector<std::pair<int, int>> directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+
+    int dfs(const std::vector<std::vector<int>>& matrix, int r, int c, std::vector<std::vector<int>>& memo) {
+        // If the result for this cell is already computed, return it instantly
+        if (memo[r][c] != 0) {
+            return memo[r][c];
+        }
+
+        int maxLength = 1; // Any single cell itself forms a valid path of length 1
+
+        // Explore all 4 neighbors
+        for (const auto& dir : directions) {
+            int nextR = r + dir.first;
+            int nextC = c + dir.second;
+
+            // Check boundaries and check if the neighbor value is strictly greater
+            if (nextR >= 0 && nextR < rows && nextC >= 0 && nextC < cols && matrix[nextR][nextC] > matrix[r][c]) {
+                int length = 1 + dfs(matrix, nextR, nextC, memo);
+                maxLength = std::max(maxLength, length);
+            }
+        }
+
+        // Cache the maximum path length discovered starting from this cell
+        memo[r][c] = maxLength;
+        return maxLength;
+    }
+
+public:
+    int longestIncreasingPath(std::vector<std::vector<int>>& matrix) {
+        if (matrix.empty() || matrix[0].empty()) return 0;
+
+        rows = matrix.size();
+        cols = matrix[0].size();
+        
+        // Initialize memoization matrix with 0
+        std::vector<std::vector<int>> memo(rows, std::vector<int>(cols, 0));
+        int longestPath = 0;
+
+        // Run DFS from every single cell as a potential starting point
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < cols; ++j) {
+                longestPath = std::max(longestPath, dfs(matrix, i, j, memo));
+            }
+        }
+
+        return longestPath;
+    }
+};
