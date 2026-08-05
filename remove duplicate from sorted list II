@@ -1,0 +1,35 @@
+#include <iostream>
+
+using namespace std;
+
+class Solution {
+public:
+    ListNode* deleteDuplicates(ListNode* head) {
+        // Create a dummy node to easily handle changes at the head of the list
+        ListNode* dummy = new ListNode(0, head);
+        
+        // This pointer tracks the last confirmed distinct node
+        ListNode* prev = dummy;
+        
+        while (head != nullptr) {
+            // Check if the current node has a duplicate ahead
+            if (head->next != nullptr && head->val == head->next->val) {
+                // Move ahead until we reach the last node of the duplicate chain
+                while (head->next != nullptr && head->val == head->next->val) {
+                    head = head->next;
+                }
+                // Skip all duplicates by linking the last distinct node to the node after the chain
+                prev->next = head->next;
+            } else {
+                // No duplicate detected, safely advance the prev pointer
+                prev = prev->next;
+            }
+            // Move to the next node to process
+            head = head->next;
+        }
+        
+        ListNode* new_head = dummy->next;
+        delete dummy; // Clean up the dummy node to prevent memory leaks
+        return new_head;
+    }
+};
