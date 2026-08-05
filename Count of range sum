@@ -1,0 +1,61 @@
+#include <iostream>
+#include <vector>
+
+class Solution {
+private:
+    int mergeSort(std::vector<long long>& prefix, int start, int end, int lower, int upper) {
+        if (end - start <= 1) return 0; // Base case: 0 or 1 element cannot form a valid pair
+
+        int mid = start + (end - start) / 2;
+        // Count pairs completely within the left half and right half
+        int count = mergeSort(prefix, start, mid, lower, upper) + 
+                    mergeSort(prefix, mid, end, lower, upper);
+
+        // Two pointers to track the valid range in the right sorted half
+        int low = mid, high = mid;
+        
+        // Count valid cross-pairs across the left and right halves
+        for (int i = start; i < mid; ++i) {
+            while (low < end && prefix[low] - prefix[i] < lower) {
+                low++;
+            }
+            while (high < end && prefix[high] - prefix[i] <= upper) {
+                high++;
+            }
+            count += (high - low);
+        }
+
+        // Standard merge step to keep the prefix array sorted
+        std::vector<long long> temp(end - start);
+        int left = start, right = mid, t = 0;
+        
+        while (left < mid && right < end) {
+            if (prefix[left] < prefix[right]) {
+                temp[t++] = prefix[left++];
+            } else {
+                temp[t++] = prefix[right++];
+            }
+        }
+        while (left < mid) temp[t++] = prefix[left++];
+        while (right < end) temp[t++] = prefix[right++];
+
+        // Copy back the sorted elements
+        for (int i = 0; i < temp.size(); ++i) {
+            prefix[start + i] = temp[i];
+        }
+
+        return count;
+    }
+
+public:
+    int countRangeSum(std::vector<int>& nums, int lower, int upper) {
+        int n = nums.size();
+        // Use long long to prevent integer overflow during accumulation
+        std::vector<long long> prefix(n + 1, 0);
+        for (int i = 0; i < n; ++i) {
+            prefix[i + 1] = prefix[i] + nums[i];
+        }
+
+        return mergeSort(prefix, 0, n + 1, lower, upper);
+    }
+};
