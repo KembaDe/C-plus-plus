@@ -1,0 +1,39 @@
+#include <iostream>
+#include <cmath>
+#include <string>
+#include <algorithm>
+
+class Solution {
+public:
+    int largestPalindrome(int n) {
+        // Edge case: for 1-digit numbers, the largest palindrome product is 3 * 3 = 9
+        if (n == 1) return 9;
+
+        // Calculate boundaries for n-digit numbers
+        long long upper_bound = std::pow(10, n) - 1;
+        long long lower_bound = std::pow(10, n - 1);
+
+        // Iterate through all possible left halves of the palindrome from largest to smallest
+        for (long long i = upper_bound; i >= lower_bound; --i) {
+            // Construct the palindrome from its left half 'i'
+            long long palindrome = i;
+            long long temp = i;
+            while (temp > 0) {
+                palindrome = palindrome * 10 + (temp % 10);
+                temp /= 10;
+            }
+
+            // Check if this palindrome can be factored into two n-digit numbers
+            // We start checking factors from the upper bound downwards
+            for (long long j = upper_bound; j * j >= palindrome; --j) {
+                if (palindrome % j == 0) {
+                    // Since j >= sqrt(palindrome), the other factor (palindrome / j) 
+                    // will be <= sqrt(palindrome) and thus also <= upper_bound.
+                    return palindrome % 1337;
+                }
+            }
+        }
+
+        return 0;
+    }
+};
