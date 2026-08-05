@@ -1,0 +1,28 @@
+class Solution {
+public:
+    bool wordBreak(string s, vector<string>& wordDict) {
+        // Convert vector to unordered_set for O(1) lookups
+        unordered_set<string> wordSet(wordDict.begin(), wordDict.end());
+        int n = s.length();
+        
+        // dp[i] means s[0...i-1] can be segmented into dictionary words
+        vector<bool> dp(n + 1, false);
+        
+        // Base case: an empty string can always be segmented
+        dp[0] = true;
+        
+        // Outer loop checks every substring length from 1 to n
+        for (int i = 1; i <= n; i++) {
+            // Inner loop splits the substring s[0...i-1] into two parts: s[0...j-1] and s[j...i-1]
+            for (int j = 0; j < i; j++) {
+                // If s[0...j-1] is valid and s[j...i-1] exists in the dictionary
+                if (dp[j] && wordSet.count(s.substr(j, i - j))) {
+                    dp[i] = true;
+                    break; // Found a valid segmentation for length i, move to next i
+                }
+            }
+        }
+        
+        return dp[n];
+    }
+};
