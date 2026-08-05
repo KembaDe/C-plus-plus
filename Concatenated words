@@ -1,0 +1,49 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <unordered_set>
+
+class Solution {
+private:
+    // Helper function to check if a word can be segmented into shorter words
+    bool canForm(const std::string& word, const std::unordered_set<std::string>& wordSet) {
+        if (word.empty()) return false;
+        
+        int n = word.length();
+        // dp[i] will be true if the substring word[0...i-1] can be formed by words in the set
+        std::vector<bool> dp(n + 1, false);
+        dp[0] = true; // Base case: empty prefix
+
+        for (int i = 1; i <= n; ++i) {
+            for (int j = 0; j < i; ++j) {
+                // If the left part can be formed and the right part is a valid word in our set
+                if (dp[j] && wordSet.count(word.substr(j, i - j))) {
+                    dp[i] = true;
+                    break; // No need to check further cuts for index i
+                }
+            }
+        }
+        return dp[n];
+    }
+
+public:
+    std::vector<std::string> findAllConcatenatedWordsInADict(std::vector<std::string>& words) {
+        std::unordered_set<std::string> wordSet(words.begin(), words.end());
+        std::vector<std::string> result;
+
+        for (const std::string& word : words) {
+            // Temporarily remove the current word from the set 
+            // so a word cannot be formed by combining itself with an empty string
+            wordSet.erase(word);
+
+            if (canForm(word, wordSet)) {
+                result.push_back(word);
+            }
+
+            // Restore the word back to the set for future lookups
+            wordSet.insert(word);
+        }
+
+        return result;
+    }
+};
