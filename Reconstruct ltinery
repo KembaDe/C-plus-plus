@@ -1,0 +1,40 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <unordered_map>
+#include <queue>
+#include <algorithm>
+
+class Solution {
+private:
+    // Graph representation using a min-heap (priority_queue) to guarantee lexical order
+    std::unordered_map<std::string, std::priority_queue<std::string, std::vector<std::string>, std::greater<std::string>>> graph;
+    std::vector<std::string> itinerary;
+
+    void dfs(const std::string& airport) {
+        // While there are outgoing flights available from the current airport
+        while (!graph[airport].empty()) {
+            std::string next_destination = graph[airport].top();
+            graph[airport].pop(); // Use the ticket
+            dfs(next_destination);
+        }
+        // Once stuck (no more tickets left from here), push to itinerary
+        itinerary.push_back(airport);
+    }
+
+public:
+    std::vector<std::string> findItinerary(std::vector<std::vector<std::string>>& tickets) {
+        // 1. Build the graph
+        for (const auto& ticket : tickets) {
+            graph[ticket[0]].push(ticket[1]);
+        }
+
+        // 2. Perform Modified DFS (Hierholzer's Algorithm) starting from "JFK"
+        dfs("JFK");
+
+        // 3. Reverse the itinerary because nodes are added when backtracking
+        std::reverse(itinerary.begin(), itinerary.end());
+        
+        return itinerary;
+    }
+};
