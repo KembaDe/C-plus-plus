@@ -1,0 +1,47 @@
+#include <iostream>
+#include <string>
+#include <vector>
+#include <cmath>
+#include <algorithm>
+
+class Solution {
+public:
+    int findRotateSteps(std::string ring, std::string key) {
+        int r_len = ring.length();
+        int k_len = key.length();
+
+        // 1. Group the positions of each character in the ring for fast lookups
+        std::vector<std::vector<int>> char_positions(26);
+        for (int i = 0; i < r_len; ++i) {
+            char_positions[ring[i] - 'a'].push_back(i);
+        }
+
+        // 2. dp[i] stores the minimum steps to spell the remaining key starting from ring index 'i'
+        // Initialize with 0 for the base case (after spelling the entire key)
+        std::vector<int> dp(r_len, 0);
+
+        // 3. Bottom-up DP: Iterate backward from the last character of the key to the first
+        for (int k_idx = k_len - 1; k_idx >= 0; --k_idx) {
+            std::vector<int> next_dp(r_len, 1e9); // Temporary DP array for the current key character
+            char target_char = key[k_idx];
+
+            // For every possible current ring alignment position
+            for (int r_idx = 0; r_idx < r_len; ++r_idx) {
+                // Find all target indices on the ring that match the current key character
+                for (int next_pos : char_positions[target_char - 'a']) {
+                    // Calculate clockwise and counter-clockwise distances
+                    int dist = std::abs(r_idx - next_pos);
+                    int min_dist = std::min(dist, r_len - dist);
+
+                    // Total steps = rotation steps + button press (1) + steps for the rest of the key
+                    int total_steps = min_dist + 1 + dp[next_pos];
+                    next_dp[r_idx] = std::min(next_dp[r_idx], total_steps);
+                }
+            }
+            dp = std::move(next_dp); // Move current calculations up to the next iteration
+        }
+
+        // The answer is the minimum steps starting from index 0 of the ring for the first key character
+        return dp[0];
+    }
+};
