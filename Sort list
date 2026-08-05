@@ -1,0 +1,86 @@
+class Solution {
+public:
+    ListNode* sortList(ListNode* head) {
+        // Base cases
+        if (!head || !head->next) return head;
+
+        // 1. Count the total number of nodes in the linked list
+        int length = 0;
+        ListNode* curr = head;
+        while (curr) {
+            length++;
+            curr = curr->next;
+        }
+
+        // Dummy node handles changing heads easily
+        ListNode* dummy = new ListNode(0);
+        dummy->next = head;
+
+        // 2. Iteratively merge sublists of increasing sizes: 1, 2, 4, 8...
+        for (int step = 1; step < length; step <<= 1) {
+            ListNode* prev = dummy;
+            curr = dummy->next;
+
+            while (curr) {
+                // Split off the first sublist of size 'step'
+                ListNode* left = curr;
+                ListNode* right = split(left, step);
+                
+                // Split off the remaining list to process in the next iteration
+                curr = split(right, step);
+
+                // Merge the two split sublists and link to the sorted chain
+                prev->next = merge(left, right);
+                
+                // Advance 'prev' to the end of the newly merged sublist
+                while (prev->next) {
+                    prev = prev->next;
+                }
+            }
+        }
+
+        ListNode* sortedHead = dummy->next;
+        delete dummy;
+        return sortedHead;
+    }
+
+private:
+    // Splits the list after 'step' nodes, returning the head of the remaining list
+    ListNode* split(ListNode* head, int step) {
+        if (!head) return nullptr;
+        
+        // Advance step-1 times to find the tail node of this segment
+        for (int i = 1; head->next && i < step; i++) {
+            head = head->next;
+        }
+        
+        // Detach the sublist and return the remaining segment head
+        ListNode* rest = head->next;
+        head->next = nullptr;
+        return rest;
+    }
+
+    // Merges two sorted lists and returns the head of the merged list
+    ListNode* merge(ListNode* l1, ListNode* l2) {
+        ListNode* dummy = new ListNode(0);
+        ListNode* tail = dummy;
+
+        while (l1 && l2) {
+            if (l1->val < l2->val) {
+                tail->next = l1;
+                l1 = l1->next;
+            } else {
+                tail->next = l2;
+                l2 = l2->next;
+            }
+            tail = tail->next;
+        }
+        
+        // Attach remaining nodes
+        tail->next = l1 ? l1 : l2;
+
+        ListNode* mergedHead = dummy->next;
+        delete dummy;
+        return mergedHead;
+    }
+};
